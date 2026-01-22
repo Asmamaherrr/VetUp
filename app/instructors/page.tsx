@@ -3,18 +3,27 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Users, Star } from "lucide-react"
 
 export default async function InstructorsPage() {
   const supabase = await createClient()
 
-  // Get all instructors with their stats
+  // 1️⃣ نجيب كل الأشخاص اللي عندهم كورسات منشورة
   const { data: instructors } = await supabase
     .from("profiles")
-    .select("*")
-    .eq("role", "instructor")
-    .order("created_at", { ascending: false })
+    .select(
+      `
+      id,
+      full_name,
+      avatar_url,
+      bio,
+      role,
+      courses!courses_instructor_id_fkey (
+        id
+      )
+    `,
+    )
+    .eq("courses.is_published", true)
 
   const instructorsWithStats = await Promise.all(
     (instructors || []).map(async (instructor) => {
@@ -28,7 +37,7 @@ export default async function InstructorsPage() {
       // Get total students
       const { data: enrollments } = await supabase
         .from("enrollments")
-        .select("id", { count: "exact" })
+        .select("id")
         .in(
           "course_id",
           (
@@ -36,6 +45,7 @@ export default async function InstructorsPage() {
               .from("courses")
               .select("id")
               .eq("instructor_id", instructor.id)
+              .eq("is_published", true)
           ).data?.map((c) => c.id) || [],
         )
 
@@ -50,11 +60,14 @@ export default async function InstructorsPage() {
               .from("courses")
               .select("id")
               .eq("instructor_id", instructor.id)
+              .eq("is_published", true)
           ).data?.map((c) => c.id) || [],
         )
 
       const averageRating =
-        reviews && reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null
+        reviews && reviews.length > 0
+          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+          : null
 
       return {
         ...instructor,
@@ -81,39 +94,51 @@ export default async function InstructorsPage() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {instructorsWithStats.map((instructor) => (
                 <Card key={instructor.id} className="overflow-hidden transition-all hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="text-center">
-                      <Avatar className="mx-auto mb-4 h-20 w-20">
-                        <AvatarImage src={instructor.avatar_url || ""} />
-                        <AvatarFallback>{(instructor.full_name || "I").charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <h3 className="font-semibold text-foreground">{instructor.full_name || "Instructor"}</h3>
-                      {instructor.bio && (
-                        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{instructor.bio}</p>
-                      )}
+                  <CardContent className="p-6 text-center">
+                    <Avatar className="mx-auto mb-4 h-20 w-20">
+                      <AvatarImage src={instructor.avatar_url || ""} />
+                      <AvatarFallback>
+                        {(instructor.full_name || "I").charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
 
-                      <div className="mt-4 flex items-center justify-center gap-4 border-t pt-4">
-                        <div className="text-center">
-                          <p className="text-lg font-bold">{instructor.courses_count}</p>
-                          <p className="text-xs text-muted-foreground">Courses</p>
-                        </div>
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Users className="h-4 w-4" />
-                            <span className="text-lg font-bold">{instructor.students_count}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">Students</p>
-                        </div>
-                        {instructor.average_rating && (
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <Star className="h-4 w-4 fill-warning text-warning" />
-                              <span className="text-lg font-bold">{instructor.average_rating.toFixed(1)}</span>
-                            </div>
-                            <p className="text-xs text-muted-foreground">Rating</p>
-                          </div>
-                        )}
+                    <h3 className="font-semibold text-foreground">
+                      {instructor.full_name || "Instructor"}
+                    </h3>
+
+                    {instructor.bio && (
+                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                        {instructor.bio}
+                      </p>
+                    )}
+
+                    <div className="mt-4 flex justify-center gap-6 border-t pt-4">
+                      <div>
+                        <p className="text-lg font-bold">{instructor.courses_count}</p>
+                        <p className="text-xs text-muted-foreground">Courses</p>
                       </div>
+
+                      <div>
+                        <div className="flex items-center justify-center gap-1">
+                          <Users className="h-4 w-4" />
+                          <span className="text-lg font-bold">
+                            {instructor.students_count}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Students</p>
+                      </div>
+
+                      {instructor.average_rating && (
+                        <div>
+                          <div className="flex items-center justify-center gap-1">
+                            <Star className="h-4 w-4 fill-warning text-warning" />
+                            <span className="text-lg font-bold">
+                              {instructor.average_rating.toFixed(1)}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Rating</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
