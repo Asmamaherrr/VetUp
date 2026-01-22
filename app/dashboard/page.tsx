@@ -80,7 +80,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Stats Grid */}
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardContent className="flex items-center gap-4 p-6">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -100,17 +100,6 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-2xl font-bold">{inProgressCourses}</p>
                   <p className="text-sm text-muted-foreground">In Progress</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
-                  <Award className="h-6 w-6 text-success" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalCertificates}</p>
-                  <p className="text-sm text-muted-foreground">Certificates</p>
                 </div>
               </CardContent>
             </Card>
@@ -199,37 +188,6 @@ export default async function DashboardPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Certificates */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-warning" />
-                    Certificates
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {certificates && certificates.length > 0 ? (
-                    <div className="space-y-3">
-                      {certificates.slice(0, 3).map((cert) => (
-                        <div key={cert.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                          <div>
-                            <p className="font-medium line-clamp-1">{cert.course?.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Issued {new Date(cert.issued_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <Badge variant="secondary">View</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-center text-sm text-muted-foreground">
-                      Complete a course to earn your first certificate!
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Quick Actions */}
               <Card>
                 <CardHeader>
@@ -246,12 +204,6 @@ export default async function DashboardPage() {
                     <Link href="/dashboard/profile">
                       <TrendingUp className="mr-2 h-4 w-4" />
                       Edit Profile
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild className="w-full justify-start bg-transparent">
-                    <Link href="/dashboard/certificates">
-                      <Award className="mr-2 h-4 w-4" />
-                      My Certificates
                     </Link>
                   </Button>
                 </CardContent>

@@ -28,7 +28,7 @@ export function MobileNav({ user, profile }: MobileNavProps) {
         <div className="flex flex-col gap-6 py-6">
           <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
             <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">LearnHub</span>
+            <span className="text-xl font-bold">VetUp</span>
           </Link>
           <nav className="flex flex-col gap-4">
             <Link href="/courses" className="text-lg font-medium" onClick={() => setOpen(false)}>
