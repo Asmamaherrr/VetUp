@@ -2,9 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,11 +13,13 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options),
+          )
         },
       },
     },
@@ -29,9 +29,13 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protected routes that require authentication
-  const protectedPaths = ["/dashboard", "/instructor", "/admin"]
-  const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
+  const pathname = request.nextUrl.pathname
+
+  // 🔒 protected routes (auth required)
+  const protectedPaths = ["/dashboard", "/admin", "/instructor/"]
+  const isProtectedPath = protectedPaths.some((path) =>
+    pathname.startsWith(path),
+  )
 
   if (isProtectedPath && !user) {
     const url = request.nextUrl.clone()
@@ -39,9 +43,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin routes require admin role
-  if (request.nextUrl.pathname.startsWith("/admin") && user) {
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+  // 🔒 admin only
+  if (pathname.startsWith("/admin") && user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
 
     if (profile?.role !== "admin") {
       const url = request.nextUrl.clone()
@@ -50,9 +58,13 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Instructor routes require instructor or admin role
-  if (request.nextUrl.pathname.startsWith("/instructor") && user) {
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+  // 🔒 instructor dashboard only
+  if (pathname.startsWith("/instructor/") && user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
 
     if (profile?.role !== "instructor" && profile?.role !== "admin") {
       const url = request.nextUrl.clone()
