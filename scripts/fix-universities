@@ -1,0 +1,11 @@
+-- Delete all existing universities to start fresh
+DELETE FROM universities;
+
+-- Insert the 6 required Egyptian universities with slugs
+INSERT INTO universities (name, slug) VALUES
+  ('Cairo', 'cairo'),
+  ('Ain Shams', 'ain-shams'),
+  ('El Mansoura', 'el-mansoura'),
+  ('Kafr Elsheikh', 'kafr-elsheikh'),
+  ('Banha', 'banha'),
+  ('El Delta', 'el-delta');

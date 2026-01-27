@@ -53,10 +53,6 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
     }
   }
 
-  if (params.category) {
-    query = query.eq("category_id", params.category)
-  }
-
   query = query.order("created_at", { ascending: false })
 
   const { data: courses } = await query

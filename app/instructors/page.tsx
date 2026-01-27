@@ -126,16 +126,6 @@ export default async function InstructorsPage() {
                       <p className="text-xs text-muted-foreground">Courses</p>
                     </div>
 
-                    <div>
-                      <div className="flex items-center justify-center gap-1">
-                        <Users className="h-4 w-4" />
-                        <span className="font-bold">
-                          {instructor.students_count}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Students</p>
-                    </div>
-
                     {instructor.average_rating && (
                       <div>
                         <div className="flex items-center justify-center gap-1">

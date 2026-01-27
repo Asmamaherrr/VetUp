@@ -7,19 +7,19 @@ import { BookOpen } from "lucide-react"
 export default async function CategoriesPage() {
   const supabase = await createClient()
 
-  // Get all categories with course counts
-  const { data: categories } = await supabase.from("categories").select("*").order("name")
+  // Get all universities with course counts
+  const { data: universities } = await supabase.from("universities").select("*").order("name")
 
-  const categoriesWithCounts = await Promise.all(
-    (categories || []).map(async (category) => {
+  const universitiesWithCounts = await Promise.all(
+    (universities || []).map(async (university) => {
       const { count } = await supabase
         .from("courses")
         .select("*", { count: "exact", head: true })
-        .eq("category_id", category.id)
+        .eq("university_id", university.id)
         .eq("is_published", true)
 
       return {
-        ...category,
+        ...university,
         course_count: count || 0,
       }
     }),
@@ -31,17 +31,18 @@ export default async function CategoriesPage() {
       <main className="flex-1">
         <div className="border-b border-border bg-muted/30 py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold text-foreground">choose your university</h1>
+            <h1 className="text-3xl font-bold text-foreground">Universities</h1>
+            <p className="mt-2 text-muted-foreground">Explore courses by university</p>
           </div>
         </div>
 
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          {categoriesWithCounts.length > 0 ? (
+          {universitiesWithCounts.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {categoriesWithCounts.map((category) => (
+              {universitiesWithCounts.map((university) => (
                 <a
-                  key={category.id}
-                  href={`/courses?category=${category.slug}`}
+                  key={university.id}
+                  href={`/courses?university=${university.slug}`}
                   className="group"
                 >
                   <Card className="h-full transition-all hover:shadow-lg">
@@ -53,10 +54,10 @@ export default async function CategoriesPage() {
                           </div>
                         </div>
                         <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {category.name}
+                          {university.name}
                         </h3>
                         <p className="mt-2 text-sm text-muted-foreground">
-                          {category.course_count} {category.course_count === 1 ? "course" : "courses"}
+                          {university.course_count} {university.course_count === 1 ? "course" : "courses"}
                         </p>
                       </div>
                     </CardContent>
@@ -67,7 +68,7 @@ export default async function CategoriesPage() {
           ) : (
             <div className="py-12 text-center">
               <BookOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-              <p className="text-lg text-muted-foreground">Not available yet</p>
+              <p className="text-lg text-muted-foreground">No universities available yet</p>
             </div>
           )}
         </div>

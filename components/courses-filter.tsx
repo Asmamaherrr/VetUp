@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, X } from "lucide-react"
 import { useState } from "react"
-import type { University, Category } from "@/lib/types"
+import type { University } from "@/lib/types"
 
 interface CoursesFilterProps {
   universities: University[]
-  categories: Category[]
 }
 
-export function CoursesFilter({ universities, categories }: CoursesFilterProps) {
+export function CoursesFilter({ universities }: CoursesFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "")
@@ -40,7 +39,7 @@ export function CoursesFilter({ universities, categories }: CoursesFilterProps) 
   }
 
   const hasFilters =
-    searchParams.get("search") || searchParams.get("university") || searchParams.get("category")
+    searchParams.get("search") || searchParams.get("university") || searchParams.get("level")
 
   return (
     <div className="mb-8 space-y-4">
@@ -56,15 +55,15 @@ export function CoursesFilter({ universities, categories }: CoursesFilterProps) 
           />
         </form>
         <div className="flex flex-wrap gap-2">
-          <Select value={searchParams.get("category") || "all"} onValueChange={(value) => updateFilter("category", value)}>
+          <Select value={searchParams.get("university") || "all"} onValueChange={(value) => updateFilter("university", value)}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="University" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.slug}>
-                  {category.name}
+              <SelectItem value="all">All Universities</SelectItem>
+              {universities.map((university) => (
+                <SelectItem key={university.id} value={university.slug}>
+                  {university.name}
                 </SelectItem>
               ))}
             </SelectContent>
