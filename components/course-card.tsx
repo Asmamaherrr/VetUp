@@ -25,10 +25,24 @@ export function CourseCard({ course }: CourseCardProps) {
     return `${hours}h ${mins}m`
   }
 
+  const levelMap: { [key: string]: string } = {
+    beginner: "1st",
+    intermediate: "2nd",
+    advanced: "3rd",
+    expert: "4th",
+    master: "5th",
+  }
+
   const levelColors = {
     beginner: "bg-success/10 text-success",
     intermediate: "bg-warning/10 text-warning",
     advanced: "bg-destructive/10 text-destructive",
+    expert: "bg-purple-100 text-purple-700",
+    master: "bg-amber-100 text-amber-700",
+  }
+
+  const getLevelDisplay = (level: string) => {
+    return levelMap[level] || level
   }
 
   const handleCourseClick = () => {
@@ -55,7 +69,7 @@ export function CourseCard({ course }: CourseCardProps) {
           fill
           className="object-cover transition-transform group-hover:scale-105"
         />
-        <Badge className={`absolute right-2 top-2 ${levelColors[course.level]}`}>{course.level}</Badge>
+        <Badge className={`absolute right-2 top-2 ${levelColors[course.level]}`}>{getLevelDisplay(course.level)}</Badge>
       </div>
       <CardContent className="p-4">
         <div className="mb-2 flex items-center gap-2">
@@ -86,6 +100,7 @@ export function CourseCard({ course }: CourseCardProps) {
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
+            {formatDuration(course.total_duration)}
           </div>
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
@@ -105,4 +120,3 @@ export function CourseCard({ course }: CourseCardProps) {
     </Card>
   )
 }
-

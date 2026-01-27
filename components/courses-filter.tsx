@@ -1,20 +1,20 @@
 "use client"
 
 import type React from "react"
-
 import { useRouter, useSearchParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, X } from "lucide-react"
 import { useState } from "react"
-import type { Category } from "@/lib/types"
+import type { University, Category } from "@/lib/types"
 
 interface CoursesFilterProps {
+  universities: University[]
   categories: Category[]
 }
 
-export function CoursesFilter({ categories }: CoursesFilterProps) {
+export function CoursesFilter({ universities, categories }: CoursesFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchValue, setSearchValue] = useState(searchParams.get("search") || "")
@@ -40,7 +40,7 @@ export function CoursesFilter({ categories }: CoursesFilterProps) {
   }
 
   const hasFilters =
-    searchParams.get("search") || searchParams.get("category") || searchParams.get("level") || searchParams.get("sort")
+    searchParams.get("search") || searchParams.get("university") || searchParams.get("category")
 
   return (
     <div className="mb-8 space-y-4">
@@ -56,10 +56,7 @@ export function CoursesFilter({ categories }: CoursesFilterProps) {
           />
         </form>
         <div className="flex flex-wrap gap-2">
-          <Select
-            value={searchParams.get("category") || "all"}
-            onValueChange={(value) => updateFilter("category", value)}
-          >
+          <Select value={searchParams.get("category") || "all"} onValueChange={(value) => updateFilter("category", value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -70,28 +67,6 @@ export function CoursesFilter({ categories }: CoursesFilterProps) {
                   {category.name}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-          <Select value={searchParams.get("level") || "all"} onValueChange={(value) => updateFilter("level", value)}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={searchParams.get("sort") || "newest"} onValueChange={(value) => updateFilter("sort", value)}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="popular">Most Popular</SelectItem>
-              <SelectItem value="price-low">Price: Low to High</SelectItem>
-              <SelectItem value="price-high">Price: High to Low</SelectItem>
             </SelectContent>
           </Select>
           {hasFilters && (

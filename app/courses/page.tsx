@@ -148,7 +148,6 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
               {params.category && (
                 <Badge variant="secondary">Category: {params.category}</Badge>
               )}
-              {params.level && <Badge variant="secondary">Level: {params.level}</Badge>}
             </div>
           )}
 
@@ -174,7 +173,6 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
           )}
         </div>
       </main>
-
       <Footer />
     </div>
   )

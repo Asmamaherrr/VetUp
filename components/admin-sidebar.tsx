@@ -13,11 +13,13 @@ import {
   Settings,
   FolderTree,
   Shield,
+  Monitor,
 } from "lucide-react"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/devices", label: "Devices", icon: Monitor },
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
   { href: "/admin/categories", label: "Universities", icon: FolderTree },
   { href: "/admin/payments", label: "Payments", icon: DollarSign },

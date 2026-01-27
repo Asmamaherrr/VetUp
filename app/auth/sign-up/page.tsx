@@ -80,28 +80,8 @@ export default function SignUpPage() {
           <GraduationCap className="mx-auto mb-8 h-20 w-20" />
           <h2 className="mb-4 text-3xl font-bold">Join Our Community</h2>
           <p className="text-lg text-primary-foreground/80">
-            Create an account and get access to exclusive courses, track your progress, and earn certificates.
+            Create an account and get access to exclusive courses, track your progress, and achieve your learning goals!
           </p>
-          <div className="mt-8 space-y-4 text-left">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
-                <Check className="h-5 w-5" />
-              </div>
-              <span>Access 500+ courses</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
-                <Check className="h-5 w-5" />
-              </div>
-              <span>Track your learning progress</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
-                <Check className="h-5 w-5" />
-              </div>
-              <span>Earn completion certificates</span>
-            </div>
-          </div>
         </div>
       </div>
       {/* Right side - Form */}
@@ -109,7 +89,7 @@ export default function SignUpPage() {
         <div className="w-full max-w-md">
           <Link href="/" className="mb-8 flex items-center gap-2">
             <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">LearnHub</span>
+            <span className="text-xl font-bold">VetUp</span>
           </Link>
           <Card className="border-0 shadow-none lg:border lg:shadow-sm">
             <CardHeader className="space-y-1 px-0 lg:px-6">
@@ -199,13 +179,13 @@ export default function SignUpPage() {
                 </div>
                 <p className="mt-4 text-center text-xs text-muted-foreground">
                   By creating an account, you agree to our{" "}
-                  <Link href="/terms" className="underline hover:text-foreground">
+                  <span className="underline">
                     Terms of Service
-                  </Link>{" "}
+                  </span>{" "}
                   and{" "}
-                  <Link href="/privacy" className="underline hover:text-foreground">
+                  <span className="underline">
                     Privacy Policy
-                  </Link>
+                  </span>
                 </p>
                 <div className="mt-6 text-center text-sm text-muted-foreground">
                   Already have an account?{" "}

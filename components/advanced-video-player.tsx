@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
@@ -10,36 +10,80 @@ import {
   Volume2,
   VolumeX,
   Maximize2,
-  Settings,
-  Download,
   Rewind,
   FastForward,
+  Download,
+  Check,
 } from 'lucide-react'
 
 interface AdvancedVideoPlayerProps {
   src: string
   title: string
   duration?: number
-  onDownload?: () => void
+  userId?: string
+  userName?: string
 }
 
 export function AdvancedVideoPlayer({
   src,
   title,
   duration = 0,
-  onDownload,
+  userId,
+  userName,
 }: AdvancedVideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [volume, setVolume] = useState(1)
   const [playbackSpeed, setPlaybackSpeed] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
+  const [isCached, setIsCached] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  // Register service worker and check cache status
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((registration) => {
+        console.log('[v0] Service Worker registered:', registration)
+      }).catch((error) => {
+        console.error('[v0] Service Worker registration failed:', error)
+      })
+    }
+
+    // Check if video is already cached
+    checkCacheStatus()
+  }, [src])
+
+  const checkCacheStatus = async () => {
+    try {
+      const cache = await caches.open('video-cache-v1')
+      const cachedResponse = await cache.match(src)
+      setIsCached(!!cachedResponse)
+    } catch (error) {
+      console.error('[v0] Error checking cache:', error)
+    }
+  }
+
+  const handleDownloadForOffline = async () => {
+    setIsDownloading(true)
+    try {
+      const response = await fetch(src)
+      const cache = await caches.open('video-cache-v1')
+      await cache.put(src, response.clone())
+      setIsCached(true)
+      console.log('[v0] Video cached successfully for offline viewing')
+    } catch (error) {
+      console.error('[v0] Error caching video:', error)
+      alert('Failed to cache video. Please check your internet connection.')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="space-y-4">
-          <div className="bg-black rounded-lg overflow-hidden">
+          <div className="bg-black rounded-lg overflow-hidden relative">
             <video
               src={src}
               className="w-full"
@@ -48,6 +92,14 @@ export function AdvancedVideoPlayer({
               muted={isMuted}
               volume={volume}
             />
+            {/* Student ID Watermark */}
+            {userId && (
+              <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-2 rounded text-sm font-mono pointer-events-none">
+                <div className="text-xs opacity-75">Student ID:</div>
+                <div className="font-semibold">{userId}</div>
+                {userName && <div className="text-xs opacity-75 mt-1">{userName}</div>}
+              </div>
+            )}
           </div>
 
           <div>
@@ -123,11 +175,19 @@ export function AdvancedVideoPlayer({
                 </select>
               </div>
 
-              {onDownload && (
-                <Button size="sm" variant="ghost" onClick={onDownload}>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={handleDownloadForOffline}
+                disabled={isDownloading}
+                title={isCached ? "Video cached for offline viewing" : "Cache video for offline viewing"}
+              >
+                {isCached ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
                   <Download className="h-4 w-4" />
-                </Button>
-              )}
+                )}
+              </Button>
 
               <Button size="sm" variant="ghost">
                 <Maximize2 className="h-4 w-4" />

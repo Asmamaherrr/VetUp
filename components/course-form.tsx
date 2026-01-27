@@ -11,22 +11,19 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Category, Course, University } from "@/lib/types"
+import type { Category, Course } from "@/lib/types"
 
 interface CourseFormProps {
   categories: Category[]
-  universities: University[]
   instructorId: string
-  universityId?: string
   course?: Course
 }
 
-export function CourseForm({ categories, universities, instructorId, universityId, course }: CourseFormProps) {
+export function CourseForm({ categories, instructorId, course }: CourseFormProps) {
   const [title, setTitle] = useState(course?.title || "")
   const [description, setDescription] = useState(course?.description || "")
   const [categoryId, setCategoryId] = useState(course?.category_id || "")
-  const [selectedUniversityId, setSelectedUniversityId] = useState(course?.university_id || universityId || "")
-  const [level, setLevel] = useState<"beginner" | "intermediate" | "advanced">(course?.level || "beginner")
+  const [level, setLevel] = useState<"1st" | "2nd" | "3rd" | "4th " | "5th">(course?.level || "1st")
   const [price, setPrice] = useState(course?.price?.toString() || "0")
   const [thumbnailUrl, setThumbnailUrl] = useState(course?.thumbnail_url || "")
   const [isPublished, setIsPublished] = useState(course?.is_published || false)
@@ -59,7 +56,6 @@ export function CourseForm({ categories, universities, instructorId, universityI
         thumbnail_url: thumbnailUrl || null,
         is_published: isPublished,
         instructor_id: instructorId,
-        university_id: selectedUniversityId,
         updated_at: new Date().toISOString(),
       }
 
@@ -112,7 +108,7 @@ export function CourseForm({ categories, universities, instructorId, universityI
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="category">University</Label>
+              <Label htmlFor="category">Category</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a category" />
@@ -129,20 +125,24 @@ export function CourseForm({ categories, universities, instructorId, universityI
 
             <div className="grid gap-2">
               <Label htmlFor="level">Level</Label>
-              <Select value={level} onValueChange={(v: "beginner" | "intermediate" | "advanced") => setLevel(v)}>
+              <Select value={level} onValueChange={(v: "1st" | "2nd" | "3rd" | "4th" | "5th") => setLevel(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
+                  <SelectItem value="first">1st</SelectItem>
+                  <SelectItem value="second">2nd</SelectItem>
+                  <SelectItem value="third">3rd</SelectItem>
+                  <SelectItem value="forth">4th</SelectItem>
+                  <SelectItem value="fifth">5th</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="price">Price</Label>
+              <Label htmlFor="price">Price (EGP)</Label>
               <Input
                 id="price"
                 type="number"

@@ -23,7 +23,7 @@ interface LessonFormProps {
 export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
   const [title, setTitle] = useState(lesson?.title || "")
   const [description, setDescription] = useState(lesson?.description || "")
-  const [contentType, setContentType] = useState<"video" | "text" | "quiz" | "resource">(
+  const [contentType, setContentType] = useState<"video" | "text" | "quiz" | "resource" | "pdf">(
     lesson?.content_type || "video",
   )
   const [contentUrl, setContentUrl] = useState(lesson?.content_url || "")
@@ -31,6 +31,8 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
   const [duration, setDuration] = useState(lesson?.duration?.toString() || "10")
   const [isFree, setIsFree] = useState(lesson?.is_free || false)
   const [isLoading, setIsLoading] = useState(false)
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [pdfFileName, setPdfFileName] = useState(lesson?.content_url?.split('/').pop() || "")
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
@@ -42,12 +44,30 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
     const supabase = createClient()
 
     try {
+      let finalContentUrl = contentUrl
+
+      // Handle PDF file upload
+      if (contentType === "pdf" && pdfFile) {
+        const fileName = `${courseId}/${Date.now()}_${pdfFile.name}`
+        const { data, error: uploadError } = await supabase.storage
+          .from("lesson-pdfs")
+          .upload(fileName, pdfFile, { upsert: true })
+        
+        if (uploadError) throw uploadError
+        
+        const { data: publicData } = supabase.storage
+          .from("lesson-pdfs")
+          .getPublicUrl(fileName)
+        
+        finalContentUrl = publicData.publicUrl
+      }
+
       const lessonData = {
         course_id: courseId,
         title,
         description: description || null,
         content_type: contentType,
-        content_url: contentUrl || null,
+        content_url: finalContentUrl || null,
         content_text: contentText || null,
         duration: Number.parseInt(duration) || 10,
         position: lesson?.position || orderIndex,
@@ -72,6 +92,23 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
       setError(error instanceof Error ? error.message : "Failed to save lesson")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.type !== "application/pdf") {
+        setError("Please select a PDF file")
+        return
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        setError("PDF file must be less than 50MB")
+        return
+      }
+      setPdfFile(file)
+      setPdfFileName(file.name)
+      setError(null)
     }
   }
 
@@ -110,7 +147,7 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
               <Label htmlFor="contentType">Content Type</Label>
               <Select
                 value={contentType}
-                onValueChange={(v: "video" | "text" | "quiz" | "resource") => setContentType(v)}
+                onValueChange={(v: "video" | "text" | "quiz" | "resource" | "pdf") => setContentType(v)}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -120,6 +157,7 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
                   <SelectItem value="text">Text/Article</SelectItem>
                   <SelectItem value="quiz">Quiz</SelectItem>
                   <SelectItem value="resource">Resource</SelectItem>
+                  <SelectItem value="pdf">PDF Document</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -164,6 +202,21 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
                 placeholder="Write your lesson content here... (HTML supported)"
                 rows={10}
               />
+            </div>
+          )}
+
+          {contentType === "pdf" && (
+            <div className="grid gap-2">
+              <Label htmlFor="pdfFile">PDF File *</Label>
+              <input
+                id="pdfFile"
+                type="file"
+                accept="application/pdf"
+                onChange={handlePdfChange}
+                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+              />
+              {pdfFileName && <p className="text-xs text-muted-foreground">Selected: {pdfFileName}</p>}
+              <p className="text-xs text-muted-foreground">Maximum file size: 50MB</p>
             </div>
           )}
 

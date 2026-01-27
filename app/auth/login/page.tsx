@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { createClient } from "@/lib/supabase/client"
+import { trackDeviceSession } from "@/lib/actions/device-security"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -32,6 +33,22 @@ export default function LoginPage() {
         password,
       })
       if (error) throw error
+
+      // Track device after successful login (non-blocking)
+      setTimeout(async () => {
+        try {
+          const deviceName = `Device (${new Date().toLocaleDateString()})`
+          const deviceType = /mobile|android|iphone/i.test(navigator.userAgent) ? "mobile" : "laptop"
+          const userAgent = navigator.userAgent
+          const ipAddress = "unknown" // We'll get this from server if available
+
+          await trackDeviceSession(deviceName, deviceType, ipAddress, userAgent)
+        } catch (deviceError) {
+          console.error("[v0] Device tracking error:", deviceError)
+          // Silently fail - don't block login
+        }
+      }, 100)
+
       router.push("/dashboard")
       router.refresh()
     } catch (error: unknown) {
@@ -48,7 +65,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <Link href="/" className="mb-8 flex items-center gap-2">
             <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">LearnHub</span>
+            <span className="text-xl font-bold">VetUp</span>
           </Link>
           <Card className="border-0 shadow-none lg:border lg:shadow-sm">
             <CardHeader className="space-y-1 px-0 lg:px-6">

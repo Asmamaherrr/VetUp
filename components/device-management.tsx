@@ -59,7 +59,7 @@ export function DeviceManagement() {
       <div>
         <h3 className="text-lg font-semibold">Active Devices</h3>
         <p className="text-sm text-muted-foreground">
-          You can have maximum 2 active devices. Manage your devices to maintain account security.
+          You can have maximum 1 active device. Manage your devices to maintain account security.
         </p>
       </div>
 
@@ -120,7 +120,7 @@ export function DeviceManagement() {
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          For security reasons, your account is limited to 2 active devices. If you shared the account,
+          For security reasons, your account is limited to 1 active device. If you shared the account,
           you will be automatically logged out.
         </AlertDescription>
       </Alert>

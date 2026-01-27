@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, CheckCircle, Play, FileText, BarChart3, BookOpen } from "lucide-react"
 import { MarkCompleteButton } from "@/components/mark-complete-button"
+import { AdvancedVideoPlayer } from "@/components/advanced-video-player"
+import { PdfViewer } from "@/components/pdf-viewer"
 
 interface LessonPageProps {
   params: Promise<{ slug: string; lessonId: string }>
@@ -67,6 +69,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     text: FileText,
     quiz: BarChart3,
     resource: BookOpen,
+    pdf: FileText,
   }
 
   return (
@@ -162,11 +165,22 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 {currentLesson.content_type === "video" && currentLesson.content_url && (
                   <Card className="mb-6 overflow-hidden">
                     <div className="aspect-video bg-black">
-                      <video src={currentLesson.content_url} controls className="h-full w-full">
-                        Your browser does not support the video tag.
-                      </video>
+                      <AdvancedVideoPlayer 
+                        src={currentLesson.content_url} 
+                        title={currentLesson.title}
+                        userId={user.id}
+                        userName={user.user_metadata?.full_name || user.email}
+                      />
                     </div>
                   </Card>
+                )}
+
+                {currentLesson.content_type === "pdf" && currentLesson.content_url && (
+                  <PdfViewer 
+                    src={currentLesson.content_url} 
+                    title={currentLesson.title}
+                    userId={user.id}
+                  />
                 )}
 
                 {currentLesson.content_type === "video" && !currentLesson.content_url && (

@@ -34,6 +34,7 @@ export interface Category {
 }
 
 export interface Course {
+  total_duration: number
   id: string
   title: string
   slug: string
@@ -45,8 +46,8 @@ export interface Course {
   original_price: number | null
   instructor_id: string
   category_id: string | null
-  university_id: string
-  level: "beginner" | "intermediate" | "advanced"
+  university_id: string 
+  level: "1st" | "2nd" | "3rd" | "4th" | "5th"
   language: string
   duration_hours: number
   is_published: boolean
@@ -65,7 +66,7 @@ export interface Lesson {
   course_id: string
   title: string
   description: string | null
-  content_type: "video" | "text" | "quiz" | "resource"
+  content_type: "video" | "text" | "quiz" | "resource" | "pdf"
   video_url: string | null
   text_content: string | null
   resource_url: string | null
@@ -138,12 +139,14 @@ export interface UserDevice {
   id: string
   user_id: string
   device_name: string
-  device_type: "laptop" | "mobile" | "tablet" | "other"
-  ip_address: string
+  device_type: "web" | "mobile" | "tablet" | "desktop"
+  device_id: string
   user_agent: string
-  last_active_at: string
-  created_at: string
+  ip_address: string
   is_active: boolean
+  last_activity: string
+  created_at: string
+  updated_at: string
 }
 
 export interface DeviceSession {

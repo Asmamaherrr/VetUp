@@ -9,7 +9,7 @@ export default function VerifyEmailPage() {
       <div className="w-full max-w-md">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2">
           <GraduationCap className="h-8 w-8 text-primary" />
-          <span className="text-xl font-bold">LearnHub</span>
+          <span className="text-xl font-bold">VetUp</span>
         </Link>
         <Card>
           <CardHeader className="text-center">
