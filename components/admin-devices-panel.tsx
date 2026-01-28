@@ -281,7 +281,7 @@ export function AdminDevicesPanel() {
                             {device.device_type} • {device.ip_address}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Last active: {new Date(device.last_active_at).toLocaleString()}
+                            Last active: {new Date(device.last_activity).toLocaleString()}
                           </p>
                         </div>
                       </div>

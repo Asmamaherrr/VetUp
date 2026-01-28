@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
+import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -24,42 +23,78 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
   const [title, setTitle] = useState(lesson?.title || "")
   const [description, setDescription] = useState(lesson?.description || "")
   const [contentType, setContentType] = useState<"video" | "text" | "quiz" | "resource" | "pdf">(
-    lesson?.content_type || "video",
+    lesson?.content_type || "video"
   )
-  const [contentUrl, setContentUrl] = useState(lesson?.content_url || "")
-  const [contentText, setContentText] = useState(lesson?.content_text || "")
-  const [duration, setDuration] = useState(lesson?.duration?.toString() || "10")
-  const [isFree, setIsFree] = useState(lesson?.is_free || false)
+  const [contentUrl, setContentUrl] = useState(lesson?.video_url || lesson?.resource_url || "")
+  const [contentText, setContentText] = useState(lesson?.text_content || "")
+  const [duration, setDuration] = useState(lesson?.duration_minutes?.toString() || "10")
+  const [isFree, setIsFree] = useState(lesson?.is_free_preview || false)
   const [isLoading, setIsLoading] = useState(false)
   const [pdfFile, setPdfFile] = useState<File | null>(null)
-  const [pdfFileName, setPdfFileName] = useState(lesson?.content_url?.split('/').pop() || "")
+  const [pdfFileName, setPdfFileName] = useState("")
+  const [videoFile, setVideoFile] = useState<File | null>(null)
+  const [videoFileName, setVideoFileName] = useState("")
   const [error, setError] = useState<string | null>(null)
+
   const router = useRouter()
+  const supabase = createClient()
+
+  const sanitizeFileName = (fileName: string) => {
+    const ext = fileName.substring(fileName.lastIndexOf("."))
+    const name = fileName
+      .substring(0, fileName.lastIndexOf("."))
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-")
+      .substring(0, 50)
+
+    return `${name}${ext}`
+  }
+
+  const uploadToStorage = async (file: File, folder: "videos" | "pdfs") => {
+    const cleanName = sanitizeFileName(file.name)
+    const path = `${folder}/${courseId}/${Date.now()}-${cleanName}`
+
+    const { error } = await supabase.storage
+      .from("lessons")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      })
+
+    if (error) throw error
+
+    const { data } = supabase.storage
+      .from("lessons")
+      .getPublicUrl(path)
+
+    return data.publicUrl
+  }
+
+  const [videoUploadProgress] = useState(0)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError(null)
 
-    const supabase = createClient()
+    if (!title.trim()) {
+      setError("Lesson title is required")
+      return
+    }
+
+    setIsLoading(true)
 
     try {
       let finalContentUrl = contentUrl
 
-      // Handle PDF file upload
+      // 🎥 VIDEO UPLOAD
+      if (contentType === "video" && videoFile) {
+        finalContentUrl = await uploadToStorage(videoFile, "videos")
+      }
+
+      // 📄 PDF UPLOAD
       if (contentType === "pdf" && pdfFile) {
-        const fileName = `${courseId}/${Date.now()}_${pdfFile.name}`
-        const { data, error: uploadError } = await supabase.storage
-          .from("lesson-pdfs")
-          .upload(fileName, pdfFile, { upsert: true })
-        
-        if (uploadError) throw uploadError
-        
-        const { data: publicData } = supabase.storage
-          .from("lesson-pdfs")
-          .getPublicUrl(fileName)
-        
-        finalContentUrl = publicData.publicUrl
+        finalContentUrl = await uploadToStorage(pdfFile, "pdfs")
       }
 
       const lessonData = {
@@ -67,12 +102,14 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
         title,
         description: description || null,
         content_type: contentType,
-        content_url: finalContentUrl || null,
-        content_text: contentText || null,
-        duration: Number.parseInt(duration) || 10,
-        position: lesson?.position || orderIndex,
-        is_free: isFree,
+        video_url: contentType === "video" ? finalContentUrl : null,
+        text_content: contentType === "text" ? contentText : null,
+        resource_url: contentType === "pdf" || contentType === "resource" ? finalContentUrl : null,
+        duration_minutes: Number(duration) || 10,
+        position: lesson?.position ?? orderIndex,
+        is_free_preview: isFree,
         updated_at: new Date().toISOString(),
+        created_at: lesson?.created_at ?? new Date().toISOString(),
       }
 
       if (lesson) {
@@ -81,34 +118,34 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
       } else {
         const { error } = await supabase.from("lessons").insert(lessonData)
         if (error) throw error
-
-        // Update course totals
-        await supabase.rpc("update_course_totals", { course_id_param: courseId })
       }
 
       router.push(`/instructor/courses/${courseId}/lessons`)
       router.refresh()
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to save lesson")
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || "Failed to save lesson")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // UI HANDLERS (ما تغيروا)
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setVideoFile(file)
+      setVideoFileName(file.name)
+      setContentUrl("")
     }
   }
 
   const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.type !== "application/pdf") {
-        setError("Please select a PDF file")
-        return
-      }
-      if (file.size > 50 * 1024 * 1024) {
-        setError("PDF file must be less than 50MB")
-        return
-      }
       setPdfFile(file)
       setPdfFileName(file.name)
-      setError(null)
+      setContentUrl("")
     }
   }
 
@@ -175,20 +212,57 @@ export function LessonForm({ courseId, orderIndex, lesson }: LessonFormProps) {
           </div>
 
           {(contentType === "video" || contentType === "resource") && (
-            <div className="grid gap-2">
-              <Label htmlFor="contentUrl">Content URL</Label>
-              <Input
-                id="contentUrl"
-                type="url"
-                value={contentUrl}
-                onChange={(e) => setContentUrl(e.target.value)}
-                placeholder="https://example.com/video.mp4"
-              />
-              <p className="text-xs text-muted-foreground">
-                {contentType === "video"
-                  ? "Link to your video file (MP4, YouTube, Vimeo)"
-                  : "Link to downloadable resource"}
-              </p>
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="videoFile">Upload Video File</Label>
+                <input
+                  id="videoFile"
+                  type="file"
+                  accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                  onChange={handleVideoChange}
+                  className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                />
+                {videoFileName && (
+                  <p className="text-xs text-muted-foreground">Selected: {videoFileName}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Supported formats: MP4, WebM, OGG, MOV (Max 500MB)
+                </p>
+              </div>
+
+              {videoUploadProgress > 0 && videoUploadProgress < 100 && (
+                <div className="w-full bg-secondary rounded-full h-2">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all"
+                    style={{ width: `${videoUploadProgress}%` }}
+                  />
+                </div>
+              )}
+
+              <div className="relative">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex-1 border-t" />
+                  <span>OR</span>
+                  <div className="flex-1 border-t" />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="contentUrl">Video URL</Label>
+                <Input
+                  id="contentUrl"
+                  type="url"
+                  value={contentUrl}
+                  onChange={(e) => setContentUrl(e.target.value)}
+                  placeholder="https://example.com/video.mp4 or YouTube/Vimeo link"
+                  disabled={videoFile !== null}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {contentType === "video"
+                    ? "Paste a YouTube, Vimeo link, or direct video file URL"
+                    : "Link to downloadable resource"}
+                </p>
+              </div>
             </div>
           )}
 

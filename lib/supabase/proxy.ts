@@ -31,7 +31,6 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // 🔒 protected routes (auth required)
   const protectedPaths = ["/dashboard", "/admin", "/instructor/"]
   const isProtectedPath = protectedPaths.some((path) =>
     pathname.startsWith(path),
@@ -43,7 +42,6 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 🔒 admin only
   if (pathname.startsWith("/admin") && user) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -58,7 +56,6 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // 🔒 instructor dashboard only
   if (pathname.startsWith("/instructor/") && user) {
     const { data: profile } = await supabase
       .from("profiles")
